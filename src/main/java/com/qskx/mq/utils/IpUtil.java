@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.Enumeration;
 
 /**
@@ -43,5 +44,12 @@ public class IpUtil {
         }
 
         return ip.concat(":").concat(String.valueOf(port));
+    }
+
+    public static void main(String[] args) throws UnknownHostException {
+        System.out.println(InetAddress.getLocalHost().getCanonicalHostName());
+        System.out.println(InetAddress.getLocalHost().getHostName());
+        System.out.println(getIp());
+        System.out.println(getAddress(8080));
     }
 }
