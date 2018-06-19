@@ -17,6 +17,7 @@ import io.netty.util.ReferenceCountUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.UUID;
@@ -47,9 +48,10 @@ class Server{
 					.childHandler(new ChannelInitializer<SocketChannel>() { //配置具体的数据处理方式
 						@Override
 						protected void initChannel(SocketChannel socketChannel) throws Exception {
-							socketChannel.pipeline().addLast(new ServerHandler());
-//									.addLast(new NettyDecoder(RpcRequest.class))
-//									.addLast(new NettyEncoder(RpcResponse.class));
+							socketChannel.pipeline()
+									.addLast(new NettyDecoder(RpcRequest.class))
+									.addLast(new NettyEncoder(RpcResponse.class))
+									.addLast(new ServerHandler());
 						}
 					})
 					/**
@@ -81,24 +83,19 @@ class Server{
 	}
 }
 
-class ServerHandler extends SimpleChannelInboundHandler {
+class ServerHandler extends SimpleChannelInboundHandler<RpcRequest> {
 
 	@Override
-	protected void channelRead0(final ChannelHandlerContext channelHandlerContext, Object msg) throws Exception {
+	protected void channelRead0(final ChannelHandlerContext channelHandlerContext, RpcRequest msg) throws Exception {
 		//do something msg
-		ByteBuf buf = (ByteBuf)msg;
-		byte[] data = new byte[buf.readableBytes()];
-		buf.readBytes(data);
-		String request = new String(data, "utf-8");
-//		RpcRequest request= (RpcRequest) msg;
+
+		RpcRequest request= (RpcRequest) msg;
 		System.out.println("Server: " + request);
 		//写给客户端
-//		String response = "我是反馈的信息";
-		channelHandlerContext.writeAndFlush(Unpooled.copiedBuffer("888".getBytes()));
-//		RpcResponse rpcResponse = new RpcResponse();
-//		rpcResponse.setRequestId(UUID.randomUUID().toString());
-//		rpcResponse.setResult("888, 发，发，发");
-//		channelHandlerContext.writeAndFlush(rpcResponse);
+		RpcResponse rpcResponse = new RpcResponse();
+		rpcResponse.setRequestId(UUID.randomUUID().toString());
+		rpcResponse.setResult("888, 发，发，发");
+		channelHandlerContext.writeAndFlush(rpcResponse);
 		//.addListener(ChannelFutureListener.CLOSE);
 
 	}
@@ -121,8 +118,8 @@ class Client{
 					@Override
 					protected void initChannel(SocketChannel socketChannel) throws Exception {
 						socketChannel.pipeline()
-//								.addLast(new NettyDecoder(RpcResponse.class))
-//								.addLast(new NettyEncoder(RpcRequest.class))
+								.addLast(new NettyDecoder(RpcResponse.class))
+								.addLast(new NettyEncoder(RpcRequest.class))
 								.addLast(new ClientHandler());
 					}
 				});
@@ -133,22 +130,26 @@ class Client{
 	}
 }
 
-class ClientHandler extends SimpleChannelInboundHandler {
+class ClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
 
 	@Override
-	protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object msg) throws Exception {
+	protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcResponse msg) throws Exception {
 		try {
-			ByteBuf buf = (ByteBuf) msg;
-			byte[] data = new byte[buf.readableBytes()];
-			buf.readBytes(data);
-			System.out.println("Client：" + new String(data).trim());
-////			RpcResponse rpcResponse = (RpcResponse) msg;
-//			System.out.println(response);
+
+			RpcResponse rpcResponse = (RpcResponse) msg;
+			System.out.println(rpcResponse);
 		} finally {
-//			ReferenceCountUtil.release(msg);
+			ReferenceCountUtil.release(msg);
 		}
 	}
 
+	@Override
+	public void channelActive(ChannelHandlerContext ctx) throws Exception {
+		RpcRequest rpcRequest = new RpcRequest();
+		rpcRequest.setRequestId(UUID.randomUUID().toString());
+		rpcRequest.setRegistryKey("test");
+		ctx.writeAndFlush(rpcRequest);
+	}
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
