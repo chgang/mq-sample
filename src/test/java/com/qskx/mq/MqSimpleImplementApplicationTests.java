@@ -47,9 +47,9 @@ class Server{
 					.childHandler(new ChannelInitializer<SocketChannel>() { //配置具体的数据处理方式
 						@Override
 						protected void initChannel(SocketChannel socketChannel) throws Exception {
-							socketChannel.pipeline().addLast(new ServerHandler())
-									.addLast(new NettyDecoder(RpcRequest.class))
-									.addLast(new NettyEncoder(RpcResponse.class));
+							socketChannel.pipeline().addLast(new ServerHandler());
+//									.addLast(new NettyDecoder(RpcRequest.class))
+//									.addLast(new NettyEncoder(RpcResponse.class));
 						}
 					})
 					/**
@@ -81,24 +81,24 @@ class Server{
 	}
 }
 
-class ServerHandler extends SimpleChannelInboundHandler<RpcRequest> {
+class ServerHandler extends SimpleChannelInboundHandler {
 
 	@Override
-	protected void channelRead0(final ChannelHandlerContext channelHandlerContext, RpcRequest request) throws Exception {
+	protected void channelRead0(final ChannelHandlerContext channelHandlerContext, Object msg) throws Exception {
 		//do something msg
-//		ByteBuf buf = (ByteBuf)msg;
-//		byte[] data = new byte[buf.readableBytes()];
-//		buf.readBytes(data);
-//		String request = new String(data, "utf-8");
+		ByteBuf buf = (ByteBuf)msg;
+		byte[] data = new byte[buf.readableBytes()];
+		buf.readBytes(data);
+		String request = new String(data, "utf-8");
 //		RpcRequest request= (RpcRequest) msg;
 		System.out.println("Server: " + request);
 		//写给客户端
 //		String response = "我是反馈的信息";
-//		channelHandlerContext.writeAndFlush(Unpooled.copiedBuffer("888".getBytes()));
-		RpcResponse rpcResponse = new RpcResponse();
-		rpcResponse.setRequestId(UUID.randomUUID().toString());
-		rpcResponse.setResult("888, 发，发，发");
-		channelHandlerContext.writeAndFlush(rpcResponse);
+		channelHandlerContext.writeAndFlush(Unpooled.copiedBuffer("888".getBytes()));
+//		RpcResponse rpcResponse = new RpcResponse();
+//		rpcResponse.setRequestId(UUID.randomUUID().toString());
+//		rpcResponse.setResult("888, 发，发，发");
+//		channelHandlerContext.writeAndFlush(rpcResponse);
 		//.addListener(ChannelFutureListener.CLOSE);
 
 	}
@@ -121,32 +121,29 @@ class Client{
 					@Override
 					protected void initChannel(SocketChannel socketChannel) throws Exception {
 						socketChannel.pipeline()
-								.addLast(new NettyDecoder(RpcResponse.class))
-								.addLast(new NettyEncoder(RpcRequest.class))
+//								.addLast(new NettyDecoder(RpcResponse.class))
+//								.addLast(new NettyEncoder(RpcRequest.class))
 								.addLast(new ClientHandler());
 					}
 				});
 		ChannelFuture future = bootstrap.connect("127.0.0.1", 8379).sync();
-//		future.channel().writeAndFlush(Unpooled.copiedBuffer("777".getBytes()));
-		RpcRequest rpcRequest = new RpcRequest();
-		rpcRequest.setRequestId(UUID.randomUUID().toString());
-		future.channel().writeAndFlush(rpcRequest).sync();
+		future.channel().writeAndFlush(Unpooled.copiedBuffer("777".getBytes()));
 		future.channel().closeFuture().sync();
 		workerGroup.shutdownGracefully();
 	}
 }
 
-class ClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
+class ClientHandler extends SimpleChannelInboundHandler {
 
 	@Override
-	protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcResponse response) throws Exception {
+	protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object msg) throws Exception {
 		try {
-//			ByteBuf buf = (ByteBuf) msg;
-//			byte[] data = new byte[buf.readableBytes()];
-//			buf.readBytes(data);
-//			System.out.println("Client：" + new String(data).trim());
-//			RpcResponse rpcResponse = (RpcResponse) msg;
-			System.out.println(response);
+			ByteBuf buf = (ByteBuf) msg;
+			byte[] data = new byte[buf.readableBytes()];
+			buf.readBytes(data);
+			System.out.println("Client：" + new String(data).trim());
+////			RpcResponse rpcResponse = (RpcResponse) msg;
+//			System.out.println(response);
 		} finally {
 //			ReferenceCountUtil.release(msg);
 		}
