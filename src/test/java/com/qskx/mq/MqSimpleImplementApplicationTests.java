@@ -2,11 +2,10 @@ package com.qskx.mq;
 
 import com.qskx.mq.rpc.client.NettyDecoder;
 import com.qskx.mq.rpc.client.NettyEncoder;
-import com.qskx.mq.rpc.client.RpcRequest;
-import com.qskx.mq.rpc.client.RpcResponse;
+import com.qskx.mq.rpc.client.model.RpcRequest;
+import com.qskx.mq.rpc.client.model.RpcResponse;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -17,7 +16,6 @@ import io.netty.util.ReferenceCountUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.UUID;

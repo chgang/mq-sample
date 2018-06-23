@@ -7,9 +7,7 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -91,4 +89,26 @@ public class ZKServiceDiscovery {
         }
     }
 
+    public static String discover(String registryKey) {
+        Set<String> addrSet = serverAddrMap.get(registryKey);
+        if (addrSet == null){
+            serverAddrMap.put(registryKey, new HashSet<String>());
+            discoverServices();
+            addrSet = serverAddrMap.get(registryKey);
+        }
+
+        if (addrSet.size() == 0){
+            return null;
+        }
+
+        String address;
+        List<String> addrList = new ArrayList<>(addrSet);
+        if (addrList.size() == 1){
+            address = addrList.get(0);
+        } else {
+            address = addrList.get(new Random().nextInt(addrList.size()));
+        }
+
+        return address;
+    }
 }

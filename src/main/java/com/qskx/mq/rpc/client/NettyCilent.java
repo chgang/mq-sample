@@ -1,5 +1,9 @@
 package com.qskx.mq.rpc.client;
 
+import com.qskx.mq.rpc.client.model.RpcCallBackFuture;
+import com.qskx.mq.rpc.client.model.RpcRequest;
+import com.qskx.mq.rpc.client.model.RpcResponse;
+import com.qskx.mq.utils.ZKServiceDiscovery;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -61,5 +65,32 @@ public class NettyCilent {
 
     private static void writeAndFlush(Channel channel, RpcRequest request) throws Exception {
         channel.writeAndFlush(request).sync();
+    }
+
+    public RpcResponse send(RpcRequest request) throws Exception {
+        try {
+            String address = ZKServiceDiscovery.discover(request.getRegistryKey());
+
+            if (address == null){
+                throw new RuntimeException("************ no address for service. *************" + request.getClassName());
+            }
+
+            Channel channel = getChannel(address);
+            if (channel == null){
+                throw new RuntimeException("********** no channel for service.《{}" + request.getClassName() + "》***********");
+            }
+
+            RpcCallBackFuture future = new RpcCallBackFuture(request);
+//            RpcCallBackFuture.futurePool.put(request.getRequestId(), future);
+            writeAndFlush(channel, request);
+
+            return future.get(5000);
+        } catch (Exception e){
+            log.error("********** send -> client send request error.《{}" + e.getMessage(), e + "》**********");
+            throw e;
+        } finally {
+            RpcCallBackFuture.futurePool.remove(request.getRequestId());
+        }
+
     }
 }

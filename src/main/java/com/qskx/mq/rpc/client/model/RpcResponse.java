@@ -1,4 +1,4 @@
-package com.qskx.mq.rpc.client;
+package com.qskx.mq.rpc.client.model;
 
 import java.io.Serializable;
 

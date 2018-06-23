@@ -1,5 +1,6 @@
 package com.qskx.mq.rpc.client;
 
+import com.qskx.mq.rpc.client.model.RpcResponse;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
