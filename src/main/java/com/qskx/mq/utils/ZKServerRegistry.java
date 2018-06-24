@@ -1,15 +1,13 @@
 package com.qskx.mq.utils;
 
 import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooDefs;
-import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.*;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -65,7 +63,25 @@ public class ZKServerRegistry {
         return zooKeeper;
     }
 
-    public static void registerServers(){
+    public static void registerServers(int port, Set<String> registryKeyList) throws KeeperException, InterruptedException {
+        if (port < 1 || registryKeyList == null || registryKeyList.size() == 0){
+            return;
+        }
 
+        String address = IpUtil.getAddress(port);
+        for (String registerKey : registryKeyList){
+            String registerKeyPath = Environment.ZK_SERVICES_PATH.concat("/").concat(registerKey);
+            Stat registerKeyPathStat = getInstance().exists(registerKeyPath, true);
+            if (registerKeyPathStat == null){
+                getInstance().create(registerKeyPath, new byte[]{}, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+            }
+
+            String registerKeyAddressPath = registerKeyPath.concat("/").concat(address);
+            Stat addressStat = getInstance().exists(registerKeyAddressPath, true);
+            if (addressStat ==  null){
+                getInstance().create(registerKeyAddressPath, address.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+            }
+            log.info("registerServers -> registerKey {}, registerKeyPath {}, address {}", registerKey, registerKeyPath, address);
+        }
     }
 }
