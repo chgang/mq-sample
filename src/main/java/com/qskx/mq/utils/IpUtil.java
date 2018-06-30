@@ -26,7 +26,7 @@ public class IpUtil {
                 Enumeration<InetAddress> addresses = ni.getInetAddresses();
                 while (addresses.hasMoreElements()){
                     inetAddress = addresses.nextElement();
-                    if (inetAddress.isLoopbackAddress() && inetAddress.getHostAddress().indexOf(":") == -1){
+                    if (!inetAddress.isLoopbackAddress() && inetAddress.getHostAddress().indexOf(":") == -1){
                         return inetAddress.getHostAddress();
                     }
                 }

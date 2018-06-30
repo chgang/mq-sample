@@ -4,6 +4,7 @@ import com.qskx.mq.rpc.client.model.RpcRequest;
 import com.qskx.mq.rpc.client.model.RpcResponse;
 import com.qskx.mq.rpc.server.NettyServer;
 import com.qskx.mq.utils.ZKServerRegistry;
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cglib.reflect.FastClass;
@@ -34,7 +35,13 @@ public class NetComServerFactory {
 
     private static Executor executor = Executors.newCachedThreadPool();
     public static void registry() {
-        ZKServerRegistry.registerServers(port, registryMap.keySet());
+        try {
+            ZKServerRegistry.registerServers(port, registryMap.keySet());
+        } catch (KeeperException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public static RpcResponse invokeService(RpcRequest request, Object serviceBean) {

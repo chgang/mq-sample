@@ -14,11 +14,15 @@ public class Environment {
 
     public static final String ZK_ADDRESS;
 
-    private static final String ZK_ADDRESS_FILE = "/mq-conf.properties";
+    private static final String ZK_ADDRESS_FILE = "mq-conf.properties";
 
     static {
         Properties prop = PropertiesUtil.loadProperties(ZK_ADDRESS_FILE);
-        ZK_ADDRESS = PropertiesUtil.getString(prop, ZK_ADDRESS_FILE);
+        ZK_ADDRESS = PropertiesUtil.getString(prop, "zkServers");
+    }
+
+    public static void main(String[] args) {
+        System.out.println(ZK_ADDRESS);
     }
 
 }
